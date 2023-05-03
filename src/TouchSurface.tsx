@@ -70,7 +70,7 @@ class State {
       this.ctx.lineCap = "round";
       this.ctx.moveTo(center.x - elapsedTimeSinceStart * SPEED, center.y);
       this.ctx.lineTo(center.x - elapsedTimeSinceEnd * SPEED, center.y);
-      this.ctx.lineWidth = 10;
+      this.ctx.lineWidth = 20;
       this.ctx.strokeStyle = "#ffffff";
       this.ctx.stroke();
     }
@@ -91,7 +91,10 @@ class State {
 
   public mouseUp(x: number, y: number) {
     if (this.currentTouch) {
-      this.currentTouch.end = this.timestamp;
+      // Make sure the touch is at least 100ms so that audio nor rendered lines
+      // are too short
+      const duration = this.timestamp - this.currentTouch.start;
+      this.currentTouch.end = this.currentTouch.start + Math.max(duration, 100);
       this.currentTouch = undefined;
     }
   }

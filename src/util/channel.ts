@@ -7,6 +7,8 @@ export default class Channel<T> implements AsyncIterable<T> {
   private receivers: Receiver<T>[] = [];
   private queue: [T, () => void][] = [];
   private closed: boolean = false;
+  /** Resolves when a new send can be performed. */
+  private nextSend: Promise<void> = Promise.resolve();
 
   public receive(): Promise<T> {
     if (this.closed) {
@@ -24,11 +26,7 @@ export default class Channel<T> implements AsyncIterable<T> {
     });
   }
 
-  public async send(...values: T[]): Promise<void> {
-    if (this.closed) {
-      throw new Error("Cannot send to closed channel");
-    }
-
+  private async _send(...values: T[]): Promise<void> {
     let next = Promise.resolve();
     for (const value of values) {
       const receiver = this.receivers.shift();
@@ -45,6 +43,16 @@ export default class Channel<T> implements AsyncIterable<T> {
     }
 
     return next;
+  }
+
+  public async send(...values: T[]): Promise<void> {
+    if (this.closed) {
+      throw new Error("Cannot send to closed channel");
+    }
+
+    // Ensure that only one send can be handled at a time
+    this.nextSend = this.nextSend.then(() => this._send(...values));
+    return this.nextSend;
   }
 
   public [Symbol.asyncIterator](): AsyncIterator<T> {

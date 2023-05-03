@@ -81,7 +81,7 @@ class State {
 
       const startX = center.x - elapsedTimeSinceStart * SPEED;
       const endX = center.x - elapsedTimeSinceEnd * SPEED;
-      if (startX < 0) {
+      if (endX < 0) {
         // TODO: Might as well mark for removal?
         continue;
       }

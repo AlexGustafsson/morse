@@ -53,7 +53,11 @@ export default function (): JSX.Element {
 
         const morse = encodeToMorse(event.key);
         console.log("morse", morse);
-        audioRef.current.queue(morse);
+        audioRef.current.queue(morse).then(() => {
+          setTimeout(() => {
+            setQueue((queue) => queue.slice(1));
+          }, 100);
+        });
 
         setQueue((queue) => [...queue, event.key]);
       } catch {

@@ -5,7 +5,7 @@ interface Receiver<T> {
 
 export default class Channel<T> implements AsyncIterable<T> {
   private receivers: Receiver<T>[] = [];
-  private queue: T[] = [];
+  private queue: [T, () => void][] = [];
   private closed: boolean = false;
 
   public receive(): Promise<T> {
@@ -14,7 +14,9 @@ export default class Channel<T> implements AsyncIterable<T> {
     }
 
     if (this.queue.length > 0) {
-      return Promise.resolve(this.queue.shift()!);
+      const [value, resolve] = this.queue.shift()!;
+      resolve();
+      return Promise.resolve(value);
     }
 
     return new Promise((resolve, reject) => {
@@ -22,19 +24,27 @@ export default class Channel<T> implements AsyncIterable<T> {
     });
   }
 
-  public send(...values: T[]): void {
+  public async send(...values: T[]): Promise<void> {
     if (this.closed) {
       throw new Error("Cannot send to closed channel");
     }
 
+    let next = Promise.resolve();
     for (const value of values) {
       const receiver = this.receivers.shift();
       if (receiver) {
         receiver.resolve(value);
       } else {
-        this.queue.push(value);
+        next = next.then(
+          () =>
+            new Promise((resolve) => {
+              this.queue.push([value, resolve]);
+            })
+        );
       }
     }
+
+    return next;
   }
 
   public [Symbol.asyncIterator](): AsyncIterator<T> {

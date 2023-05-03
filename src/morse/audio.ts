@@ -112,6 +112,6 @@ export class AudioManager extends EventTarget {
   }
 
   public async queue(morse: Morse) {
-    this.channel.send(...morse);
+    return this.channel.send(...morse);
   }
 }

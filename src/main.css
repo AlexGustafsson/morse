@@ -5,15 +5,12 @@
 @layer base {
   html {
     @apply antialiased;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
     padding-bottom: env(safe-area-inset-bottom);
     font-family: "Open Sans", sans-serif;
     @apply bg-slate-100;
   }
 
   body {
-    touch-actions: none;
     overscroll-behavior: none;
     color: rgb(39, 52, 59);
     font-size: 1rem;
@@ -21,6 +18,13 @@
     line-height: 1.5;
     width: 100vw;
     height: 100vh;
+  }
+
+  * {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   #root {

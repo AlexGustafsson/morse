@@ -97,6 +97,18 @@ class State {
   }
 }
 
+function getPointerEventPosition(event: MouseEvent | TouchEvent) {
+  return event instanceof MouseEvent
+    ? {
+        x: event.clientX - (event.target as HTMLElement).offsetLeft,
+        y: event.clientY - (event.target as HTMLElement).offsetTop,
+      }
+    : {
+        x: event.touches[0].clientX - (event.target as HTMLElement).offsetLeft,
+        y: event.touches[0].clientY - (event.target as HTMLElement).offsetTop,
+      };
+}
+
 export default function (props: HTMLProps<HTMLCanvasElement>): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -122,19 +134,24 @@ export default function (props: HTMLProps<HTMLCanvasElement>): JSX.Element {
     });
     observer.observe(canvasRef.current);
 
-    canvasRef.current.addEventListener("mousedown", (event) => {
-      const x = event.clientX - canvasRef.current!.offsetLeft;
-      const y = event.clientY - canvasRef.current!.offsetTop;
+    const onMouseDown = (event: MouseEvent | TouchEvent) => {
+      const { x, y } = getPointerEventPosition(event);
+
       state.mouseDown(x, y);
       audio.start();
-    });
+    };
+    canvasRef.current.addEventListener("mousedown", onMouseDown);
+    canvasRef.current.addEventListener("touchstart", onMouseDown);
 
-    canvasRef.current.addEventListener("mouseup", (event) => {
-      const x = event.clientX - canvasRef.current!.offsetLeft;
-      const y = event.clientY - canvasRef.current!.offsetTop;
+    const onMouseUp = (event: MouseEvent | TouchEvent) => {
+      const { x, y } = getPointerEventPosition(event);
+
       state.mouseUp(x, y);
       audio.stop();
-    });
+    };
+    canvasRef.current.addEventListener("mouseup", onMouseUp);
+    canvasRef.current.addEventListener("touchend", onMouseUp);
+    canvasRef.current.addEventListener("touchcancel", onMouseUp);
 
     state.start();
   }, [canvasRef]);

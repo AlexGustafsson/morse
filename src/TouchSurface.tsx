@@ -1,4 +1,5 @@
 import { HTMLProps, useEffect, useRef } from "react";
+import impulseResponseBuffer from "./assets/response.wav?buffer";
 
 interface Touch {
   start: number;
@@ -12,6 +13,7 @@ class MorseAudioManager {
   private ctx: AudioContext;
   private oscillator: OscillatorNode;
   private gain: GainNode;
+  private convolver: ConvolverNode;
   private startedOnce = false;
 
   constructor() {
@@ -22,8 +24,19 @@ class MorseAudioManager {
     this.oscillator.frequency.value = 800;
 
     this.gain = new GainNode(this.ctx);
-
     this.gain.connect(this.ctx.destination);
+
+    // Load telephone-like impulse response buffer to get a more realistic sound
+    this.convolver = new ConvolverNode(this.ctx);
+    this.convolver.connect(this.gain);
+    this.ctx
+      .decodeAudioData(impulseResponseBuffer)
+      .then((buffer) => {
+        this.convolver.buffer = buffer;
+      })
+      .catch((error) => {
+        console.error("Failed to load impulse response buffer", error);
+      });
   }
 
   public start() {
@@ -32,7 +45,7 @@ class MorseAudioManager {
       this.oscillator.start();
     }
 
-    this.oscillator.connect(this.gain);
+    this.oscillator.connect(this.convolver);
   }
 
   public stop() {

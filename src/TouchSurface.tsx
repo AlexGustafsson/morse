@@ -66,10 +66,17 @@ class State {
       const elapsedTimeSinceStart = (timestamp - touch.start) / 1000;
       const elapsedTimeSinceEnd = (timestamp - (touch.end || timestamp)) / 1000;
 
+      const startX = center.x - elapsedTimeSinceStart * SPEED;
+      const endX = center.x - elapsedTimeSinceEnd * SPEED;
+      if (startX < 0) {
+        // TODO: Might as well mark for removal?
+        continue;
+      }
+
       this.ctx.beginPath();
       this.ctx.lineCap = "round";
-      this.ctx.moveTo(center.x - elapsedTimeSinceStart * SPEED, center.y);
-      this.ctx.lineTo(center.x - elapsedTimeSinceEnd * SPEED, center.y);
+      this.ctx.moveTo(startX, center.y);
+      this.ctx.lineTo(endX, center.y);
       this.ctx.lineWidth = 20;
       this.ctx.strokeStyle = "#ffffff";
       this.ctx.stroke();

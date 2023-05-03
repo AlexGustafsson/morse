@@ -8,6 +8,38 @@ interface Touch {
 /** Speed of lines in pixels per second. */
 const SPEED = 150;
 
+class MorseAudioManager {
+  private ctx: AudioContext;
+  private oscillator: OscillatorNode;
+  private gain: GainNode;
+  private startedOnce = false;
+
+  constructor() {
+    this.ctx = new AudioContext();
+
+    this.oscillator = new OscillatorNode(this.ctx);
+    this.oscillator.type = "sine";
+    this.oscillator.frequency.value = 440;
+
+    this.gain = new GainNode(this.ctx);
+
+    this.gain.connect(this.ctx.destination);
+  }
+
+  public start() {
+    if (!this.startedOnce) {
+      this.startedOnce = true;
+      this.oscillator.start();
+    }
+
+    this.oscillator.connect(this.gain);
+  }
+
+  public stop() {
+    this.oscillator.disconnect();
+  }
+}
+
 class State {
   private timestamp: number = 0;
   private touches: Touch[] = [];
@@ -79,6 +111,7 @@ export default function (props: HTMLProps<HTMLCanvasElement>): JSX.Element {
     }
 
     const state = new State(ctx, 100, 100);
+    const audio = new MorseAudioManager();
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -93,12 +126,14 @@ export default function (props: HTMLProps<HTMLCanvasElement>): JSX.Element {
       const x = event.clientX - canvasRef.current!.offsetLeft;
       const y = event.clientY - canvasRef.current!.offsetTop;
       state.mouseDown(x, y);
+      audio.start();
     });
 
     canvasRef.current.addEventListener("mouseup", (event) => {
       const x = event.clientX - canvasRef.current!.offsetLeft;
       const y = event.clientY - canvasRef.current!.offsetTop;
       state.mouseUp(x, y);
+      audio.stop();
     });
 
     state.start();

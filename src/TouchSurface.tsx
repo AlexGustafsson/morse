@@ -19,7 +19,7 @@ class MorseAudioManager {
 
     this.oscillator = new OscillatorNode(this.ctx);
     this.oscillator.type = "sine";
-    this.oscillator.frequency.value = 440;
+    this.oscillator.frequency.value = 800;
 
     this.gain = new GainNode(this.ctx);
 
